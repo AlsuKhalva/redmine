@@ -1,5 +1,5 @@
 import logging
-
+import csv
 
 from redminelib import Redmine
 
@@ -19,8 +19,11 @@ redmine = Redmine(settings.URL, key = settings.API_KEY, requests={'verify': Fals
 # for item in issues:
 #     print(item)
 
-def get_extended_issue(issue_id):
+def get_extended_issue():
+
+    issue_id = get_id
     issue = project.issues.get(issue_id)
+
     id_issue = issue.id
     custom_fields = issue.custom_fields
     list_custom_fields = list(custom_fields)
@@ -46,15 +49,47 @@ def get_extended_issue(issue_id):
     extended_issue['updated_on'] = updated_on  
 
     return extended_issue
+    
 
 project = redmine.project.get(333)
 
-extended_issue = get_extended_issue(131868)
 
 
+def get_id():
+    
+    issues = redmine.issue.filter(project_id=333, limit=1).values()
+    get_issue_id_list = list(issues)
+
+    id_list = [items['id'] for items in get_issue_id_list]
+
+    return id_list
+
+
+extended_issue = get_extended_issue()
 print(extended_issue)
-extended_issue_list = []
 
+
+# def item_func(func):
+#     def decor():
+
+#         issues = redmine.issue.filter(project_id=333, limit=3).values()
+#         get_issue_id_list = list(issues)
+#         id_list = [items['id'] for items in get_issue_id_list]
+#         result = func()
+        
+#         return result
+    
+#     return decor
+
+extended_issue_list = []
 extended_issue_list.append(extended_issue) 
 
 
+with open('export.csv', 'w', encoding='utf-8') as export_issue:
+
+    column = ['id', 'status', 'priority', 'subject', 'assigned_to', 'Секция НЭП', 'Jira', 'Тип запроса', 'Способ решения', 'Сервис НЭП', 'Срок', 'Сервис Фабр.', 'ТП №',  'description', 'created_on', 'updated_on']
+    column_export_writer = csv.DictWriter(export_issue, column, delimiter=';')
+    column_export_writer.writeheader()
+
+    for column_list in extended_issue_list:
+        column_export_writer.writerow(column_list)
